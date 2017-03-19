@@ -1,15 +1,19 @@
 #include"public.h"
 
+extern long VCount_L = 0;
+extern long VCount_R = 0;
+
 float Balance_Kp = BALANCE_KP;
 float Balance_Kd = BALANCE_KD;
 float Velocity_Kp = VELOCITY_KP;
-float Velocity_Ki = VELOCITY_KI;
+float Velocity_Ki = Velocity_Kp/200;
 
 int MotorA;
 int MotorB;
 
 int Velocity_Count = 0;
 
+bool V_flag = 1;
 void Initialize()
 {
   pinMode(MA1, OUTPUT);          //TB6612控制引脚，控制电机1的方向，01为正转，10为反转
@@ -69,7 +73,7 @@ int Balance_Pwm(float Angle, float Gyro)
 {
   float Bias;
   int balance;
-  Bias = Angle - 2;   //===求出平衡的角度中值 和机械相关
+  Bias = Angle - 2.2;//0.5;   //===求出平衡的角度中值 和机械相关
   balance = Balance_Kp * Bias + Gyro * Balance_Kd; //===计算平衡控制的电机PWM  PD控制   kp是P系数 kd是D系数
   return balance;
 }
@@ -93,25 +97,40 @@ int velocity_Pwm(int encoder_left, int encoder_right)
 }
 void Limit_Pwm(void)
 {
-  int Amplitude = 250;  //===PWM满幅是255 限制在250
+
   //遥控标志Flag_Qian ，Flag_Hou
   //  if (Flag_Qian == 1)  Motor2 -= DIFFERENCE; //DIFFERENCE是一个衡量平衡小车电机和机械安装差异的一个变量。直接作用于输出，让小车具有更好的一致性。
   //  if (Flag_Hou == 1)   Motor2 -= DIFFERENCE - 2;
-  if (MotorA < -Amplitude) MotorA = -Amplitude;
-  if (MotorA > Amplitude)  MotorA = Amplitude;
-  if (MotorB < -Amplitude) MotorB = -Amplitude;
-  if (MotorB > Amplitude)  MotorB = Amplitude;
-}
+  if (MotorA < -AMPLITUDE) MotorA = -AMPLITUDE;
+  if (MotorA > AMPLITUDE)  MotorA = AMPLITUDE;
+  if (MotorB < -AMPLITUDE) MotorB = -AMPLITUDE;
+  if (MotorB > AMPLITUDE)  MotorB = AMPLITUDE;
+
+/*  if (ZERO > MotorA && MotorA > -MINIMUM) MotorA = -MINIMUM;
+  if (ZERO < MotorA && MotorA < MINIMUM) MotorA = MINIMUM;
+  if (ZERO > MotorB && MotorB > -MINIMUM) MotorB = -MINIMUM;
+  if (ZERO < MotorB && MotorB < MINIMUM) MotorB = MINIMUM;
+*/}
 
 void Run()
 {
-  if (++Velocity_Count >= 8)
+  if (V_flag)
   {
-    MotorA = Balance_Pwm(Get_Angle(), Get_AngleV())+velocity_Pwm(Get_Velocity_L(),Get_Velocity_R());
-    MotorB = Balance_Pwm(Get_Angle(), Get_AngleV())+velocity_Pwm(Get_Velocity_L(),Get_Velocity_R());
+    if (++Velocity_Count >= 8)
+    {
+      MotorA = Balance_Pwm(Get_Angle(), Get_AngleV()) + velocity_Pwm(Get_Velocity_L(), Get_Velocity_R());
+      MotorB = Balance_Pwm(Get_Angle(), Get_AngleV()) + velocity_Pwm(Get_Velocity_L(), Get_Velocity_R());
+      Velocity_Count = 0;
+      VCount_L = 0;
+      VCount_R = 0;
+    }
   }
-  MotorA = Balance_Pwm(Get_Angle(), Get_AngleV());
-  MotorB = Balance_Pwm(Get_Angle(), Get_AngleV());
+  else
+  {
+    MotorA = Balance_Pwm(Get_Angle(), Get_AngleV());
+    MotorB = Balance_Pwm(Get_Angle(), Get_AngleV());
+  }
   Limit_Pwm();
+//  Set_Pwm(testa, testb);
   Set_Pwm(MotorA, MotorB);
 }

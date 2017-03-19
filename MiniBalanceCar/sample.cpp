@@ -13,8 +13,6 @@
 u16 ax, ay, az;
 u16 gx, gy, gz;
 
-volatile long VCount_L = 0;
-volatile long VCount_R = 0;
 
 MPU6050 M6050; //instantiation MPU6050,
 KalmanFilter KalFilter;
@@ -49,12 +47,12 @@ void Read_Encoder_L()
 }
 void Read_Encoder_R() {
   if (digitalRead(ENCODER_R) == LOW) { //如果是下降沿触发的中断
-    if (digitalRead(DIRECTION_R) == LOW)      VCount_R--;//根据另外一相电平判定方向
-    else      VCount_R++;
+    if (digitalRead(DIRECTION_R) == LOW)      VCount_R++;//根据另外一相电平判定方向
+    else      VCount_R--;
   }
   else {   //如果是上升沿触发的中断
-    if (digitalRead(DIRECTION_R) == LOW)      VCount_R++; //根据另外一相电平判定方向
-    else     VCount_R--;
+    if (digitalRead(DIRECTION_R) == LOW)      VCount_R--; //根据另外一相电平判定方向
+    else     VCount_R++;
   }
 }
 int Get_Velocity_L()

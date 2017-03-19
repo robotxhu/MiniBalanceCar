@@ -12,11 +12,11 @@
 #define BAUD 38400
 /*PID相关常数*/
 //直立pid
-#define BALANCE_KP 15
-#define BALANCE_KD 1 /*（15）*/
+#define BALANCE_KP 17
+#define BALANCE_KD 0.8 /*（15）*/
 //速度pid
-#define  VELOCITY_KP  20
-#define VELOCITY_KI  0.1
+#define  VELOCITY_KP  -1.25//-1.1
+#define VELOCITY_KI  0
 
 typedef unsigned char u8;
 typedef unsigned short u16;
@@ -32,6 +32,9 @@ extern KalmanFilter KalFilter;//实例化一个卡尔曼滤波器对象，对象
 #define DIRECTION_L 4
 #define DIRECTION_R 5
 
+extern long VCount_L ;
+extern long VCount_R ;
+
 extern int Get_Velocity_L();
 extern int Get_Velocity_R();
 
@@ -43,7 +46,12 @@ extern void Read_Encoder_L();
 
 extern void testPoseInfo();
 
+
 /*control.cpp*/
+#define AMPLITUDE   250  //===PWM满幅是255 限制在250
+#define MINIMUM  11    //  pwm >11
+
+#define ZERO 0
 extern void Initialize();
 extern void Run();
 
